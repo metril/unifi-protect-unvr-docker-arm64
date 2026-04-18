@@ -22,6 +22,12 @@ services:
       - container=docker
       - STORAGE_DISK=/dev/sda
       - DEBUG=false
+      # Prefix (first three octets) of the LAN subnet that the macvlan
+      # interface will live on. The in-container network_setup.sh uses
+      # this to identify which attached interface is the LAN side and
+      # renames it to enp0s2 (primary, owns default route, MAC source
+      # for ubnt-tools). Any other attached interface becomes enp0s1.
+      - LAN_SUBNET_PREFIX=10.10.76
     restart: unless-stopped
     cap_add: # for Linux, not required on macOS
       - dac_read_search
@@ -36,18 +42,31 @@ services:
       - /var/run
       - /var/run/lock
     privileged: true # required (also gives NET_ADMIN for the in-container interface rename)
-    ports:
-      - "80:80/tcp"
-      - "443:443/tcp"
-      - "7441:7441/tcp"
-      - "7445:7445/tcp"
-      - "7446:7446/tcp"
-      - "7447:7447/tcp"
-      - "7451:7451/tcp"
-      - "7550:7550/tcp"
-      - "7552:7552/tcp"
-      - "5353:5353/udp" # mDNS — comment out if host already binds 5353 (Avahi/Bonjour)
-      - "10001:10001/udp"
+    # Two networks:
+    #   - unvr_lan: macvlan on the host NIC, giving the container a
+    #     dedicated LAN IP. Listed first so docker makes it primary
+    #     (default route goes via the LAN gateway). Becomes enp0s2
+    #     inside the container after rename.
+    #   - traefik-proxy: external bridge shared with Traefik for
+    #     HTTP(S) reverse-proxy access. Becomes enp0s1 after rename.
+    # No port mappings needed — LAN side is reachable directly via the
+    # macvlan IP; public HTTP(S) goes through Traefik.
+    networks:
+      unvr_lan:
+        ipv4_address: 10.10.76.9
+      traefik-proxy: {}
+
+networks:
+  unvr_lan:
+    driver: macvlan
+    driver_opts:
+      parent: enp0s1           # host physical NIC carrying the LAN
+    ipam:
+      config:
+        - subnet: 10.10.76.0/24
+          gateway: 10.10.76.1
+  traefik-proxy:
+    external: true
 
 # For macOS use volumes
 #volumes:

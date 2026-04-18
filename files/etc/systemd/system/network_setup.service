@@ -1,10 +1,9 @@
 [Unit]
-Description=Rename eth0 to enp0s2 and create dummy enp0s1
+Description=Rename docker-assigned interfaces to enp0s2 (LAN) and enp0s1 (bridge)
 DefaultDependencies=no
 After=local-fs.target sysinit.target
 Before=basic.target network.target network-pre.target
 Wants=network-pre.target
-ConditionPathExists=/sys/class/net/eth0
 
 [Service]
 Type=oneshot
