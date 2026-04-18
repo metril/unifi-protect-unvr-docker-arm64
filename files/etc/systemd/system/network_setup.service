@@ -1,0 +1,15 @@
+[Unit]
+Description=Rename eth0 to enp0s2 and create dummy enp0s1
+DefaultDependencies=no
+After=local-fs.target sysinit.target
+Before=basic.target network.target network-pre.target
+Wants=network-pre.target
+ConditionPathExists=/sys/class/net/eth0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/network_setup.sh
+
+[Install]
+WantedBy=basic.target
