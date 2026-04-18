@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR"
 
-image_name="${DOCKER_IMAGE:-dciancu/unifi-protect-unvr-docker-arm64}"
+image_name="${DOCKER_IMAGE:-metril/unifi-protect-unvr-docker-arm64}"
 
 opts="--label project_version=$(tr -d '\n ' < VERSION.txt) --label project_git_commit=$(git describe | tr -d '\n ')"
 firmware_version="$(tr -d '\n ' < firmware/version)"
