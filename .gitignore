@@ -2,3 +2,5 @@
 docker-compose.override.yml
 /service*.js
 /*.tar
+certs/
+compose.yaml
