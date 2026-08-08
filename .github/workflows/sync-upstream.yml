@@ -1,0 +1,48 @@
+# Keep this fork's patch series rebased on top of upstream.
+# On conflict it opens an issue; resolve locally with ./sync-upstream.sh.
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 4 * * 1'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Rebase onto upstream and push
+        id: rebase
+        run: |
+          git config user.name 'metril'
+          git config user.email '1517921+metril@users.noreply.github.com'
+          git remote add upstream https://github.com/dciancu/unifi-protect-unvr-docker-arm64.git
+          git fetch upstream main
+          if git merge-base --is-ancestor upstream/main main; then
+            echo "Already up to date with upstream; nothing to do."
+            exit 0
+          fi
+          if ! git rebase upstream/main; then
+            git rebase --abort
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          git push --force-with-lease origin main
+      - name: Open issue on conflict
+        if: failure() && steps.rebase.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title='Upstream sync conflict: manual rebase needed'
+          if [ -z "$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[].number')" ]; then
+            gh issue create --title "$title" --body \
+              "The scheduled upstream sync hit a rebase conflict. Run \`./sync-upstream.sh\` locally and resolve the conflict, then push. Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
