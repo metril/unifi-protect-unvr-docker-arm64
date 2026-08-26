@@ -78,11 +78,6 @@ Environment variables (`build.sh` usage):
 General arguments (`Dockerfile` usage) / environment variables (`build.sh` usage):
 - Set `PROTECT_URL` when building Protect to download `unifi-protect` deb package from a custom link (`edge` image).
 - Set `*_URL` (see `Dockerfile`) when building to download deb package from a custom link (`edge` image). 
-- Set `MS_URL` when building Protect to download `ms` deb package from a custom link (`edge` image).
-- Set `MSR_URL` when building Protect to download `msr` deb package from a custom link (`edge` image).
-- Set `MSP_URL` when building Protect to download `msp` deb package from a custom link (`edge` image).
-- Set `MST_URL` when building Protect to download `mst` deb package from a custom link (`edge` image).
-- Set `DS_URL` when building Protect to download `ds` deb package from a custom link (`edge` image).
 - Set `FW_URL` when building firmware to download the firmware binary from a custom link.
 - Set `FW_EDGE` when building firmware to download the latest firmware, instead of the supported repo firmware.
 - Set `FW_UNSTABLE` when building firmware to download the latest version, skipping the stable flag.
