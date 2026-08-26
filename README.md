@@ -77,8 +77,7 @@ Environment variables (`build.sh` usage):
 
 General arguments (`Dockerfile` usage) / environment variables (`build.sh` usage):
 - Set `PROTECT_URL` when building Protect to download `unifi-protect` deb package from a custom link (`edge` image).
-- Set `AIFC_CNS_URL` when building Protect to download `ai-feature-console` deb package from a custom link (`edge` image).
-- Set `AIFC_CTR_URL` when building Protect to download `ai-feature-controller` deb package from a custom link (`edge` image).
+- Set `*_URL` (see `Dockerfile`) when building to download deb package from a custom link (`edge` image). 
 - Set `MS_URL` when building Protect to download `ms` deb package from a custom link (`edge` image).
 - Set `MSR_URL` when building Protect to download `msr` deb package from a custom link (`edge` image).
 - Set `MSP_URL` when building Protect to download `msp` deb package from a custom link (`edge` image).
