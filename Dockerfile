@@ -254,7 +254,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache --mount=target=/var/cache/apt,t
             install /opt/debs/*.deb /opt/ai-feature-console.deb /opt/ai-feature-controller.deb /opt/ms.deb /opt/msr.deb \
                 /opt/msp.deb /opt/mst.deb /opt/msf.deb /opt/ds.deb /opt/protect-verify.deb /opt/unifi-protect.deb \
         && rm /opt/ai-feature-console.deb /opt/ai-feature-controller.deb /opt/ms.deb /opt/msr.deb /opt/msp.deb \
-            /opt/mst.deb /opt/ds.deb /opt/unifi-protect.deb; \
+            /opt/mst.deb /opt/ds.deb /opt/protect-verify.deb /opt/unifi-protect.deb; \
     fi \
     # PROTECT_STABLE set \
     && if [ -n "$PROTECT_STABLE" ]; then \
