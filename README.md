@@ -47,6 +47,10 @@ If running inside a VM, make sure to bridge its net adapter or forward ports fro
 Use the `build.sh` script or `Dockerfile`.  
 This will download and extract the firmware packages from the latest version available for the `UNVR` from the official UniFi download source (https://fw-update.ubnt.com) and then build Protect, all inside docker containers.
 
+There are two image variants:
+- `edge` - uses latest Protect version 
+- `stable` - uses Protect version packaged in UNVR firmware 
+
 `Dockerfile` usage:
 ```
 # build edge
