@@ -34,8 +34,14 @@ fi
 if [[ -n "${MST_URL+x}" ]]; then
     opts="$opts --build-arg MST_URL=${MST_URL}"
 fi
+if [[ -n "${MSF_URL+x}" ]]; then
+    opts="$opts --build-arg MSF_URL=${MSF_URL}"
+fi
 if [[ -n "${DS_URL+x}" ]]; then
     opts="$opts --build-arg DS_URL=${DS_URL}"
+fi
+if [[ -n "${PROTECT_VERIFY_URL+x}" ]]; then
+    opts="$opts --build-arg PROTECT_VERIFY_URL=${PROTECT_VERIFY_URL}"
 fi
 
 if [[ -n "${BUILD_TEST+x}" ]]; then
