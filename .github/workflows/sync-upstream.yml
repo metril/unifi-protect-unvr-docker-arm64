@@ -19,6 +19,10 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          # PAT (contents: read/write): the protect-main ruleset blocks force-pushes
+          # from GITHUB_TOKEN (Actions can't bypass rulesets on personal repos), so
+          # pushes must run as the repo admin.
+          token: ${{ secrets.SYNC_TOKEN }}
       - name: Assert fork marker
         run: test -f .fork-marker
       - name: Rebase onto upstream and push
