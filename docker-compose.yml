@@ -44,9 +44,11 @@ services:
     privileged: true # required (also gives NET_ADMIN for the in-container interface rename)
     # Two networks:
     #   - unvr_lan: macvlan on the host NIC, giving the container a
-    #     dedicated LAN IP. Listed first so docker makes it primary
-    #     (default route goes via the LAN gateway). Becomes enp0s2
-    #     inside the container after rename.
+    #     dedicated LAN IP. Docker picks the primary (default-route)
+    #     network by priority (higher first), then by name — NOT by
+    #     YAML order — so priority: 1000 pins this one primary (default
+    #     route goes via the LAN gateway). Becomes enp0s2 inside the
+    #     container after rename.
     #   - traefik-proxy: external bridge shared with Traefik for
     #     HTTP(S) reverse-proxy access. Becomes enp0s1 after rename.
     # No port mappings needed — LAN side is reachable directly via the
@@ -54,6 +56,7 @@ services:
     networks:
       unvr_lan:
         ipv4_address: 10.10.76.9
+        priority: 1000
       traefik-proxy: {}
 
 networks:
