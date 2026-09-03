@@ -17,9 +17,7 @@ set -euo pipefail
 log() { echo "[network_setup] $*"; }
 
 # Pull docker-provided env vars into this script's environment.
-for e in $(tr "\000" "\n" < /proc/1/environ); do
-    eval "export $e"
-done
+while IFS= read -r -d '' e; do export "$e"; done < /proc/1/environ
 
 LAN_SUBNET_PREFIX="${LAN_SUBNET_PREFIX:-}"
 if [ -z "$LAN_SUBNET_PREFIX" ]; then
