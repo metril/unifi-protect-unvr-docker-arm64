@@ -4,6 +4,10 @@
 
 Run UniFi Protect UNVR in Docker on ARM64 hardware.
 
+## Fork maintenance
+
+This fork keeps its patch series rebased on top of upstream via `./sync-upstream.sh` (or the scheduled "Sync upstream" GitHub Actions workflow) — never GitHub's "Sync fork" button, and never an auto-sync bot such as `pull[bot]`, since one already hard-reset `main` to upstream and wiped this fork's commits. `.fork-marker` is the sentinel the sync tooling checks on `origin/main` to detect that kind of clobbering before trusting it.
+
 > [!IMPORTANT]
 > Disconnect the docker host from the internet during the initial console setup, else it will auto update and may
 > break the container.  
