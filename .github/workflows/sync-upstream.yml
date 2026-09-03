@@ -19,6 +19,8 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+      - name: Assert fork marker
+        run: test -f .fork-marker
       - name: Rebase onto upstream and push
         id: rebase
         run: |
@@ -32,17 +34,17 @@ jobs:
           fi
           if ! git rebase upstream/main; then
             git rebase --abort
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
           git push --force-with-lease origin main
-      - name: Open issue on conflict
-        if: failure() && steps.rebase.outputs.conflict == 'true'
+          git push --force origin main:refs/heads/sync/last-good
+      - name: Open issue on failure
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          title='Upstream sync conflict: manual rebase needed'
+          title='Upstream sync failed: manual intervention needed'
           if [ -z "$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[].number')" ]; then
             gh issue create --title "$title" --body \
-              "The scheduled upstream sync hit a rebase conflict. Run \`./sync-upstream.sh\` locally and resolve the conflict, then push. Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "The scheduled upstream sync failed (rebase conflict, missing fork marker, or push rejection). Run \`./sync-upstream.sh\` locally to inspect and resolve. Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi

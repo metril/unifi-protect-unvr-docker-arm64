@@ -4,6 +4,10 @@
 
 Run UniFi Protect UNVR in Docker on ARM64 hardware.
 
+## Fork maintenance
+
+This fork keeps its patch series rebased on top of upstream via `./sync-upstream.sh` (or the scheduled "Sync upstream" GitHub Actions workflow) — never GitHub's "Sync fork" button, and never an auto-sync bot such as `pull[bot]`, since one already hard-reset `main` to upstream and wiped this fork's commits. `.fork-marker` is the sentinel the sync tooling checks on `origin/main` to detect that kind of clobbering before trusting it.
+
 > [!TIP]
 > Works on Raspberry Pi (tested with Pi 4 model B 4GB on Debian 13 Trixie).  
 > Protect 5.0 added support for third-party cameras via ONVIF, [see here](https://help.ui.com/hc/en-us/articles/26301104828439-Third-Party-Cameras-in-UniFi-Protect).  
