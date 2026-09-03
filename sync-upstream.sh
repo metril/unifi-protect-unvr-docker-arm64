@@ -17,6 +17,9 @@
 #     (content-identical patches are skipped automatically).
 #   - git rerere replays previously-resolved conflicts. If a new conflict
 #     appears, the rebase is left in progress for manual resolution.
+#   - origin/main is only adopted as-is if it still contains .fork-marker;
+#     otherwise it's treated as clobbered (e.g. by a fork-sync bot) and
+#     overwritten rather than rebased onto.
 
 set -euo pipefail
 
@@ -45,14 +48,10 @@ git config rerere.autoupdate true
 git fetch upstream
 git fetch origin
 
-# If the sync workflow already rewrote origin/main, rebase onto it first;
-# patches that are already in origin/main are skipped as content-identical.
-if ! git merge-base --is-ancestor origin/main main; then
-    echo "origin/main has moved (workflow sync?); rebasing onto it first."
-    git rebase origin/main
-fi
+FORK_MARKER=".fork-marker"
+CLOBBERED=0
 
-if git merge-base --is-ancestor upstream/main main; then
+if git merge-base --is-ancestor upstream/main main && [ "$(git rev-parse origin/main)" = "$(git rev-parse main)" ]; then
     echo "Already up to date with upstream; nothing to do."
     exit 0
 fi
@@ -61,13 +60,34 @@ backup="backup/pre-sync-$(date +%Y%m%d-%H%M%S)"
 git branch "$backup" main
 echo "Backup branch: $backup"
 
-if ! git rebase upstream/main; then
-    # rerere may have auto-resolved and staged the conflict; keep continuing
-    # until the rebase finishes or a conflict rerere could not handle remains.
-    tries=0
-    while [ -d "$(git rev-parse --git-path rebase-merge)" ]; do
-        if [ -n "$(git diff --name-only --diff-filter=U)" ] || [ "$tries" -ge 20 ]; then
-            cat >&2 <<'EOF'
+# If the sync workflow already rewrote origin/main, rebase onto it first;
+# patches that are already in origin/main are skipped as content-identical.
+# Only adopt origin/main if it still carries our fork marker: a bot (e.g.
+# GitHub's "Sync fork" or pull[bot]) can hard-reset origin/main to upstream
+# and wipe our patch series, and we must not rebase onto that.
+if ! git merge-base --is-ancestor origin/main main; then
+    if git cat-file -e "origin/main:$FORK_MARKER" 2>/dev/null; then
+        echo "origin/main has moved (workflow sync?); rebasing onto it first."
+        git rebase origin/main
+    else
+        echo "WARNING: origin/main lacks $FORK_MARKER — it was clobbered (bot/Sync fork?). Not adopting it; will force-push our series back." >&2
+        CLOBBERED=1
+    fi
+fi
+
+if ! git merge-base --is-ancestor upstream/main main; then
+    if ! git rebase upstream/main; then
+        if [ ! -d "$(git rev-parse --git-path rebase-merge)" ] && \
+           [ ! -d "$(git rev-parse --git-path rebase-apply)" ]; then
+            echo "ERROR: git rebase failed without leaving a rebase in progress." >&2
+            exit 1
+        fi
+        # rerere may have auto-resolved and staged the conflict; keep continuing
+        # until the rebase finishes or a conflict rerere could not handle remains.
+        tries=0
+        while [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; do
+            if [ -n "$(git diff --name-only --diff-filter=U)" ] || [ "$tries" -ge 20 ]; then
+                cat >&2 <<'EOF'
 
 Rebase stopped on a conflict rerere could not resolve. Fix it manually:
   1. Edit the conflicted files (git status shows them)
@@ -75,12 +95,18 @@ Rebase stopped on a conflict rerere could not resolve. Fix it manually:
   3. git push --force-with-lease origin main
 Or abort with: git rebase --abort
 EOF
-            exit 1
-        fi
-        GIT_EDITOR=true git rebase --continue || true
-        tries=$((tries + 1))
-    done
+                exit 1
+            fi
+            GIT_EDITOR=true git rebase --continue || true
+            tries=$((tries + 1))
+        done
+    fi
 fi
 
-git push --force-with-lease origin main
+if [ "$CLOBBERED" -eq 1 ]; then
+    git push --force-with-lease=main:"$(git rev-parse origin/main)" origin main
+else
+    git push --force-with-lease origin main
+fi
+git push --force origin main:refs/heads/sync/last-good
 echo "Synced with upstream and pushed to origin/main."
